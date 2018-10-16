@@ -7,23 +7,21 @@
 %}
 
 %token INTEGER
-%token VARIABLE
+%token IDENTIFIER
 %token BLOCK_BEGIN
 %token BLOCK_END
 %token PROGRAM
+%token PROGRAM_EOF
 
 %%
 program:
-	PROGRAM VARIABLE block
-	|
-	;
-block:
+	program_heading program_block|term PROGRAM_EOF
+program_heading:
+	PROGRAM IDENTIFIER;
+program_block:
 	BLOCK_BEGIN BLOCK_END
-	| BLOCK_BEGIN term BLOCK_END
 term:
-	INTEGER
-	| VARIABLE	
-	;
+	INTEGER|IDENTIFIER;
 
 %%
 
@@ -36,4 +34,3 @@ int main(void) {
 	yyparse();
 	return 0;
 }
-

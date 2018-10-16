@@ -40,18 +40,20 @@
       know about them.  */
    enum yytokentype {
      INTEGER = 258,
-     VARIABLE = 259,
+     IDENTIFIER = 259,
      BLOCK_BEGIN = 260,
      BLOCK_END = 261,
-     PROGRAM = 262
+     PROGRAM = 262,
+     PROGRAM_EOF = 263
    };
 #endif
 /* Tokens.  */
 #define INTEGER 258
-#define VARIABLE 259
+#define IDENTIFIER 259
 #define BLOCK_BEGIN 260
 #define BLOCK_END 261
 #define PROGRAM 262
+#define PROGRAM_EOF 263
 
 
 
