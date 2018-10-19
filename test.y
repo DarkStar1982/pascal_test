@@ -1,36 +1,43 @@
+/* simplest version of calculator */ 
 %{
 	#include <stdio.h>
 	extern int yylex();
-	extern int yyparse();
-
 	void yyerror(const char *s);
 %}
 
-%token INTEGER
-%token IDENTIFIER
-%token BLOCK_BEGIN
-%token BLOCK_END
-%token PROGRAM
-%token PROGRAM_EOF
-
-%%
-program:
-	program_heading program_block|term PROGRAM_EOF
-program_heading:
-	PROGRAM IDENTIFIER;
-program_block:
-	BLOCK_BEGIN BLOCK_END
-term:
-	INTEGER|IDENTIFIER;
+/* declare tokens */ 
+%token NUMBER OP CP
+%token ADD SUB MUL DIV
+%token EOL
 
 %%
 
-void yyerror(const char *s)
+list:
+	| list exp EOL  { printf("%d\n", $2 );}
+	;
+exp: 
+	factor
+	| exp ADD factor { $$ = $1 + $3; } 
+	| exp SUB factor { $$ = $1 - $3; } 
+	;
+factor: 
+	term 
+	| factor MUL term { $$ = $1 * $3; } 
+	| factor DIV term { $$ = $1 / $3; } 
+	;
+term: NUMBER
+	| OP exp CP { $$ = $2; }
+	;
+%%
+
+int main(int argc, char **argv)
 {
-	printf ("Error: %s\n", s);
-}
-
-int main(void) {
 	yyparse();
 	return 0;
 }
+
+void yyerror(const char *s)
+{
+	printf("Error: %s\n", s);
+}
+

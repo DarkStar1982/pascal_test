@@ -39,21 +39,25 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     INTEGER = 258,
-     IDENTIFIER = 259,
-     BLOCK_BEGIN = 260,
-     BLOCK_END = 261,
-     PROGRAM = 262,
-     PROGRAM_EOF = 263
+     NUMBER = 258,
+     OP = 259,
+     CP = 260,
+     ADD = 261,
+     SUB = 262,
+     MUL = 263,
+     DIV = 264,
+     EOL = 265
    };
 #endif
 /* Tokens.  */
-#define INTEGER 258
-#define IDENTIFIER 259
-#define BLOCK_BEGIN 260
-#define BLOCK_END 261
-#define PROGRAM 262
-#define PROGRAM_EOF 263
+#define NUMBER 258
+#define OP 259
+#define CP 260
+#define ADD 261
+#define SUB 262
+#define MUL 263
+#define DIV 264
+#define EOL 265
 
 
 

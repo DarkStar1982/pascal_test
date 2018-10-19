@@ -1,0 +1,33 @@
+program = program-heading ';' program-block '.'
+program-block = block
+program-heading = 'program' identifier
+block = variable-declaration-part statement-part
+
+variable-declaration-part = ['var' variable-declaration ';' {variable-declaration ';'}]
+variable-declaration = identifier-list ':' type-denoter
+identifier-list = identifier { ',' identifier }
+identifier = letter {letter|digit}
+constant =  integer | real
+real = digit-sequence '.' digit-sequence [ 'e' scale-factor ] j digit-sequence 'e' scale-factor
+integer = digit-sequence
+digit-sequence = [0-9]+
+type-denoter = identifier
+
+statement-part = compound-statement
+compound-statement = 'begin' statement-sequence 'end'
+statement-sequence = statement { ';' statement }
+statement = simple-statement | structured-statement
+simple-statement = empty-statement | assignment-statement
+structured-statement = compound-statement | if-statement | while-statement
+assignment-statement = identifier ':=' expression
+empty-statement =
+if-statement = 'if' boolean-expression 'then' statement [ else-part ]
+while-statement = 'while' boolean-expression 'do' statement
+expression = simple-expression [ relational-operator simple-expression ]
+simple-expression =  [ sign ] term { adding-operator term }
+term = factor {multiplying-operator factor}
+relational-operator = '='|'<>'|'<'|'>'|'<='|'>='
+adding-operator = '+' | '-' | 'or'
+multiplying-operator = '*' | '/' | 'and'
+factor =  identifier | constant
+sign = '+'|'-'

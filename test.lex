@@ -1,21 +1,17 @@
 %{
-#include "test.tab.h"  // to get the token types from Bison
-
+	#include "test.tab.h"  // to get the token types from Bison
+	int yylval;
 %}
 
-digit		[0-9]
-integer		[1-9][0-9]*
-program "program"
-begin "begin"
-end "end"
-program_eof "."
-identifier ID_[a-zA-Z][a-zA-Z0-9]*
-
 %%
-integer|digit	{return INTEGER;}
-program	{return PROGRAM;}
-begin {return BLOCK_BEGIN;}
-end {return BLOCK_END;}
-program_eof {return PROGRAM_EOF;}
-identifier {return IDENTIFIER;}
+"+"			{ return ADD; }
+"-"			{ return SUB; }
+"*"			{ return MUL; }
+"/"			{ return DIV; }
+"("			{ return OP; }
+")"			{ return CP; }
+"\n"			{ return EOL; }
+[1-9][0-9]*|[0-9]	{ yylval=atoi(yytext); return NUMBER;}
+[a-zA-Z][a-zA-Z0-9]*	{ return *yytext}
+[ \t]			{/* skip spaces */}
 %%
