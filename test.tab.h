@@ -40,30 +40,53 @@
       know about them.  */
    enum yytokentype {
      NUMBER = 258,
-     OP = 259,
-     CP = 260,
-     ADD = 261,
-     SUB = 262,
-     MUL = 263,
-     DIV = 264,
-     EOL = 265
+     IDENTIFIER = 259,
+     ADD = 260,
+     SUB = 261,
+     MUL = 262,
+     DIV = 263,
+     OP = 264,
+     CP = 265,
+     ASSIGN_OP = 266,
+     EOL = 267,
+     EOF_TOKEN = 268,
+     BEGIN_TOKEN = 269,
+     END_TOKEN = 270,
+     PROGRAM = 271,
+     WRITELN = 272
    };
 #endif
 /* Tokens.  */
 #define NUMBER 258
-#define OP 259
-#define CP 260
-#define ADD 261
-#define SUB 262
-#define MUL 263
-#define DIV 264
-#define EOL 265
+#define IDENTIFIER 259
+#define ADD 260
+#define SUB 261
+#define MUL 262
+#define DIV 263
+#define OP 264
+#define CP 265
+#define ASSIGN_OP 266
+#define EOL 267
+#define EOF_TOKEN 268
+#define BEGIN_TOKEN 269
+#define END_TOKEN 270
+#define PROGRAM 271
+#define WRITELN 272
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+typedef union YYSTYPE
+#line 10 "test.y"
+{
+	int integer_val;
+  double real_val;
+	char* string_val;
+}
+/* Line 1529 of yacc.c.  */
+#line 89 "test.tab.h"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

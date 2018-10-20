@@ -1,7 +1,6 @@
-program = program-heading ';' program-block '.'
-program-block = block
+program = program-heading ';' block '.'
 program-heading = 'program' identifier
-block = variable-declaration-part statement-part
+block = variable-declaration-part compound-statement
 
 variable-declaration-part = ['var' variable-declaration ';' {variable-declaration ';'}]
 variable-declaration = identifier-list ':' type-denoter
@@ -13,7 +12,6 @@ integer = digit-sequence
 digit-sequence = [0-9]+
 type-denoter = identifier
 
-statement-part = compound-statement
 compound-statement = 'begin' statement-sequence 'end'
 statement-sequence = statement { ';' statement }
 statement = simple-statement | structured-statement
