@@ -39,39 +39,59 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     NUMBER = 258,
-     IDENTIFIER = 259,
-     ADD = 260,
-     SUB = 261,
-     MUL = 262,
-     DIV = 263,
-     OP = 264,
-     CP = 265,
-     ASSIGN_OP = 266,
-     EOL = 267,
-     EOF_TOKEN = 268,
-     BEGIN_TOKEN = 269,
-     END_TOKEN = 270,
-     PROGRAM = 271,
-     WRITELN = 272
+     INTEGER = 258,
+     REAL = 259,
+     IDENTIFIER = 260,
+     TYPE_REAL = 261,
+     TYPE_INTEGER = 262,
+     VAR = 263,
+     ADD = 264,
+     SUB = 265,
+     MUL = 266,
+     DIV = 267,
+     OP = 268,
+     CP = 269,
+     ASSIGN_OP = 270,
+     COMMA = 271,
+     COLON = 272,
+     EOL = 273,
+     EOF_TOKEN = 274,
+     IF = 275,
+     THEN = 276,
+     ELSE = 277,
+     WHILE = 278,
+     BEGIN_TOKEN = 279,
+     END_TOKEN = 280,
+     PROGRAM = 281,
+     WRITELN = 282
    };
 #endif
 /* Tokens.  */
-#define NUMBER 258
-#define IDENTIFIER 259
-#define ADD 260
-#define SUB 261
-#define MUL 262
-#define DIV 263
-#define OP 264
-#define CP 265
-#define ASSIGN_OP 266
-#define EOL 267
-#define EOF_TOKEN 268
-#define BEGIN_TOKEN 269
-#define END_TOKEN 270
-#define PROGRAM 271
-#define WRITELN 272
+#define INTEGER 258
+#define REAL 259
+#define IDENTIFIER 260
+#define TYPE_REAL 261
+#define TYPE_INTEGER 262
+#define VAR 263
+#define ADD 264
+#define SUB 265
+#define MUL 266
+#define DIV 267
+#define OP 268
+#define CP 269
+#define ASSIGN_OP 270
+#define COMMA 271
+#define COLON 272
+#define EOL 273
+#define EOF_TOKEN 274
+#define IF 275
+#define THEN 276
+#define ELSE 277
+#define WHILE 278
+#define BEGIN_TOKEN 279
+#define END_TOKEN 280
+#define PROGRAM 281
+#define WRITELN 282
 
 
 
@@ -85,7 +105,7 @@ typedef union YYSTYPE
 	char* string_val;
 }
 /* Line 1529 of yacc.c.  */
-#line 89 "test.tab.h"
+#line 109 "test.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
