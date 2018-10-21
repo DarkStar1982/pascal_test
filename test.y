@@ -3,42 +3,51 @@
 	#include <stdlib.h>
 	#include <string>
 	#include <iostream>
+	#include <list>
 	#include <unordered_map>
+	#include "ast.h"
+
 	using namespace std;
 
 	extern int yylex();
 	extern FILE* yyin;
 	extern int linenumber;
+	void yyerror(const char* s);
 	int get_value(char* name);
 	void set_value(char* name, int value);
-	void yyerror(const char *s);
+	ast_node* create_ast_node_int(int value);
+	ast_node* create_ast_node_id(char* value);
+	ast_node* create_ast_node_op(ast_node* left, int type, ast_node* right);
+	ast_node* create_ast_node_assign(char* value, ast_node* right);
+
+	void evaluate(ast_node*);
+
 	unordered_map<string, int> symtable;
 
-	struct ast_node {
-		int node_type;
-		ast_node **children;
-		union {
-			int number;
-			char* symbol;
-		};
-	};
+	ast_node* tree_root;
+
 %}
+
 %union {
 	int integer_val;
 	bool logic_val;
   double real_val;
-	char *string_val;
+	char* string_val;
+	ast_node* ast_value;
 }
 
 /* declare tokens */
-%token INTEGER REAL IDENTIFIER TYPE_REAL TYPE_INTEGER VAR
+%token REAL TYPE_REAL TYPE_INTEGER VAR GT LS
+%token<integer_val> INTEGER
+%token<string_val> IDENTIFIER
+
 %token ADD SUB MUL DIV OP CP ASSIGN_OP COMMA COLON LOGIC_OP
 %token EOL EOF_TOKEN
 %token IF THEN ELSE WHILE BEGIN_TOKEN END_TOKEN PROGRAM WRITELN
-%type<integer_val> exp factor term assignment INTEGER IDENTIFIER
+%type<ast_value> term factor exp bool_exp assignment statement program
 %%
 program:
-	program_heading VAR variable_declaration_list block EOF_TOKEN { exit(0);}
+	program_heading VAR variable_declaration_list block EOF_TOKEN { evaluate(tree_root); exit(0);}
 program_heading:
 	PROGRAM IDENTIFIER EOL
 	;
@@ -50,7 +59,7 @@ variable_declaration:
 	identifier_list COLON type_definition EOL
 	;
 identifier_list:
-	IDENTIFIER { set_value(yyval.string_val, 0); /* set to zero on init */}
+	IDENTIFIER
 	| IDENTIFIER COMMA identifier_list
 	;
 type_definition:
@@ -66,33 +75,34 @@ list:
 	| list if_statement
 	;
 if_statement:
-	IF bool_exp THEN block { cout<<"If statement"<<endl;}
-	| IF bool_exp THEN block ELSE block { cout<<"If-else statement"<<endl;}
+	IF bool_exp THEN block
+	| IF bool_exp THEN block ELSE block
 	;
 statement:
 	assignment
-	| exp
-	| WRITELN OP exp CP  { printf("%d\n", $3 );}
+	| exp {$$=$1}
+	| WRITELN OP exp CP
 	;
 assignment:
-	IDENTIFIER ASSIGN_OP exp { $1=$3; set_value(yyval.string_val, $3);/*symbol table push */}
+	IDENTIFIER ASSIGN_OP exp {$$ = create_ast_node_assign($1,$3)}
 bool_exp:
-	exp
-	| exp LOGIC_OP exp
+	exp {$$=$1}
+	| exp GT exp {$$=create_ast_node_op($1, GT, $3);}
+	| exp LS exp {$$=create_ast_node_op($1, LS, $3);}
 	;
 exp:
-	factor
-	| exp ADD factor { $$ = $1 + $3; }
-	| exp SUB factor { $$ = $1 - $3; }
+	factor {$$=$1}
+	| exp ADD factor {$$=create_ast_node_op($1, ADD, $3);}
+	| exp SUB factor {$$=create_ast_node_op($1, SUB, $3);}
 	;
 factor:
-	term
-	| factor MUL term { $$ = $1 * $3; }
-	| factor DIV term { $$ = $1 / $3; }
+	term {$$=$1}
+	| factor MUL term {$$=create_ast_node_op($1, MUL, $3);}
+	| factor DIV term {$$=create_ast_node_op($1, DIV, $3);}
 	;
-term: INTEGER
-	| IDENTIFIER { $$=get_value(yyval.string_val); /*symbol table pop */}
-	| OP exp CP { $$ = $2; }
+term: INTEGER {$$=create_ast_node_int($1)}
+	| IDENTIFIER {$$=create_ast_node_id($1)}
+	| OP exp CP {$$=$2}
 	;
 %%
 
@@ -130,4 +140,62 @@ void set_value(char *name, int value)
 {
 	string std_name = string(name);
 	symtable[std_name]=value;
+}
+
+/************************/
+/* AST tree methods */
+/************************/
+
+ast_node* create_ast_node_int(int value)
+{
+	ast_node* result = new ast_node;
+	result->node_type = INTEGER;
+	result->integer_value = value;
+	return result;
+}
+
+ast_node* create_ast_node_id(char* value)
+{
+	ast_node* result = new ast_node;
+	result->node_type = IDENTIFIER;
+	result->string_value = value;
+	result->child_count = 0;
+	return result;
+}
+
+ast_node* create_ast_node_op(ast_node* left, int type, ast_node* right)
+{
+	ast_node* result = new ast_node;
+	result->node_type = type;
+	result->children = new ast_node*[2];
+	result->children[0]=left;
+	result->children[1]=right;
+	result->child_count = 2;
+	tree_root = result;
+	return result;
+}
+
+ast_node* create_ast_node_assign(char* value, ast_node* right)
+{
+	ast_node* result = new ast_node;
+	result->node_type = ASSIGN_OP;
+	result->string_value = value;
+	result->child_count = 1;
+	result->children = new ast_node*[1];
+	result->children[0] = right;
+	tree_root = result;
+	return result;
+}
+
+void evaluate(ast_node* node)
+{
+	int *x = &node->node_type;
+	int *count = &node->child_count;
+	for (int i=0;i<(*count);i++)
+	{
+		evaluate(node->children[i]);
+	}
+	printf("%d\n",*x);
+	printf("%d\n",*count);
+	//cout<<"A test"<<endl;
 }
