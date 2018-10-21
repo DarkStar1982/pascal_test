@@ -4,13 +4,28 @@
 	#include <string>
 	#include <iostream>
 	#include <unordered_map>
+	using namespace std;
+
 	extern int yylex();
 	extern FILE* yyin;
 	extern int linenumber;
 	int get_value(char* name);
 	void set_value(char* name, int value);
 	void yyerror(const char *s);
-	std::unordered_map<std::string, int> symtable;
+	unordered_map<string, int> symtable;
+
+	enum node_types {
+		Number,
+		Symbol, Exp
+	};
+	struct ast_node {
+		int node_type;
+		ast_node **children;
+		union value {
+			int number;
+			char* symbol;
+		};
+	};
 %}
 %union {
 	int integer_val;
@@ -24,7 +39,7 @@
 %token ADD SUB MUL DIV OP CP ASSIGN_OP COMMA COLON LOGIC_OP
 %token EOL EOF_TOKEN
 %token IF THEN ELSE WHILE BEGIN_TOKEN END_TOKEN PROGRAM WRITELN
-%type<integer_val> exp bool_exp factor term assignment INTEGER IDENTIFIER
+%type<integer_val> exp factor term assignment INTEGER IDENTIFIER
 %%
 program:
 	program_heading VAR variable_declaration_list block EOF_TOKEN { exit(0);}
@@ -55,12 +70,13 @@ list:
 	| list if_statement
 	;
 if_statement:
-	IF bool_exp THEN BEGIN_TOKEN list END_TOKEN
-	| IF bool_exp THEN BEGIN_TOKEN list END_TOKEN ELSE BEGIN_TOKEN list END_TOKEN
+	IF bool_exp THEN block { cout<<"If statement"<<endl;}
+	| IF bool_exp THEN block ELSE block { cout<<"If-else statement"<<endl;}
 	;
 statement:
 	assignment
 	| exp
+	| WRITELN OP exp CP  { printf("%d\n", $3 );}
 	;
 assignment:
 	IDENTIFIER ASSIGN_OP exp { $1=$3; set_value(yyval.string_val, $3);/*symbol table push */}
@@ -81,18 +97,20 @@ factor:
 term: INTEGER
 	| IDENTIFIER { $$=get_value(yyval.string_val); /*symbol table pop */}
 	| OP exp CP { $$ = $2; }
-	| WRITELN OP exp CP  { printf("%d\n", $3 );}
 	;
 %%
 
 int main(int argc, char **argv)
 {
-// open a file handle to a particular file:
-FILE *myfile = fopen("test.pas", "r");
-if (!myfile) { return -1; }
-yyin = myfile;
-yyparse();
-return 0;
+	char *filepath;
+	if (argc>0)
+	{
+		FILE *myfile = fopen(argv[1], "r");
+		if (!myfile) { return -1; }
+		yyin = myfile;
+		yyparse();
+	}
+	return 0;
 }
 
 void yyerror(const char *s)
@@ -100,9 +118,12 @@ void yyerror(const char *s)
 	printf("Line %i: %s\n", linenumber, s);
 }
 
+/************************/
+/* symbol table methods */
+/************************/
 int get_value(char *name)
 {
-	std::string std_name = std::string(name);
+	string std_name = string(name);
   if (symtable.find(std_name)==symtable.end())
     return 0;
   else
@@ -111,11 +132,6 @@ int get_value(char *name)
 
 void set_value(char *name, int value)
 {
-	std::string std_name = std::string(name);
+	string std_name = string(name);
 	symtable[std_name]=value;
-}
-
-int if_statement(int p1, char *p2, int p3)
-{
-	return 0;
 }

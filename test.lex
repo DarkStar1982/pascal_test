@@ -27,9 +27,9 @@ ID [a-z][a-z0-9]*
 "while"		{ return WHILE;}
 "integer"	{ return TYPE_INTEGER;}
 "real"		{ return TYPE_REAL;}
-"var"					{ return VAR;}
-"program" 		{ return PROGRAM;}
-":="					{ return ASSIGN_OP;}
+"var"			{ return VAR;}
+"program" { return PROGRAM;}
+":="			{ return ASSIGN_OP;}
 ">"|"<"|"="		{ yylval.string_val=(char *) strdup(yytext); return LOGIC_OP;}
 "writeln" { return WRITELN;}
 [1-9][0-9]*|[0-9]	{ yylval.integer_val=atoi(yytext); return INTEGER;}
