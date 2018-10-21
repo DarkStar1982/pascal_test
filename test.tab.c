@@ -126,12 +126,16 @@
 /* Copy the first part of user declarations.  */
 #line 2 "test.y"
 
-	#include <stdio.h>
 	#include <stdlib.h>
+	#include <string>
+	#include <iostream>
+	#include <unordered_map>
 	extern int yylex();
-	void yyerror(const char *s);
-	int return_value(char* name);
+	extern FILE* yyin;
+	int get_value(char* name);
 	void set_value(char* name, int value);
+	void yyerror(const char *s);
+	std::unordered_map<std::string, int> symtable;
 
 
 /* Enabling traces.  */
@@ -154,14 +158,14 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 10 "test.y"
+#line 14 "test.y"
 {
 	int integer_val;
   double real_val;
-	char* string_val;
+	char *string_val;
 }
 /* Line 193 of yacc.c.  */
-#line 165 "test.tab.c"
+#line 169 "test.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -174,7 +178,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 178 "test.tab.c"
+#line 182 "test.tab.c"
 
 #ifdef short
 # undef short
@@ -468,9 +472,9 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    25,    25,    27,    30,    31,    34,    37,    38,    41,
-      42,    44,    45,    48,    49,    52,    53,    56,    58,    59,
-      60,    63,    64,    65,    67,    68,    69,    70
+       0,    29,    29,    31,    34,    35,    38,    41,    42,    45,
+      46,    48,    49,    52,    53,    56,    57,    60,    62,    63,
+      64,    67,    68,    69,    71,    72,    73,    74
 };
 #endif
 
@@ -1405,53 +1409,58 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 25 "test.y"
+#line 29 "test.y"
     { exit(0);;}
     break;
 
+  case 7:
+#line 41 "test.y"
+    { set_value(yyval.string_val, 0);;}
+    break;
+
   case 17:
-#line 56 "test.y"
-    { set_value(yylval.string_val, (yyvsp[(3) - (3)].integer_val)); /*symbol table push */;}
+#line 60 "test.y"
+    { (yyvsp[(1) - (3)].integer_val)=(yyvsp[(3) - (3)].integer_val); set_value(yyval.string_val, (yyvsp[(3) - (3)].integer_val));/*symbol table push */;}
     break;
 
   case 19:
-#line 59 "test.y"
+#line 63 "test.y"
     { (yyval.integer_val) = (yyvsp[(1) - (3)].integer_val) + (yyvsp[(3) - (3)].integer_val); ;}
     break;
 
   case 20:
-#line 60 "test.y"
+#line 64 "test.y"
     { (yyval.integer_val) = (yyvsp[(1) - (3)].integer_val) - (yyvsp[(3) - (3)].integer_val); ;}
     break;
 
   case 22:
-#line 64 "test.y"
+#line 68 "test.y"
     { (yyval.integer_val) = (yyvsp[(1) - (3)].integer_val) * (yyvsp[(3) - (3)].integer_val); ;}
     break;
 
   case 23:
-#line 65 "test.y"
+#line 69 "test.y"
     { (yyval.integer_val) = (yyvsp[(1) - (3)].integer_val) / (yyvsp[(3) - (3)].integer_val); ;}
     break;
 
   case 25:
-#line 68 "test.y"
-    { (yyval.integer_val)=return_value(yylval.string_val); /*symbol table pop */;}
+#line 72 "test.y"
+    { (yyval.integer_val)=get_value(yyval.string_val); /*symbol table pop */;}
     break;
 
   case 26:
-#line 69 "test.y"
+#line 73 "test.y"
     { (yyval.integer_val) = (yyvsp[(2) - (3)].integer_val); ;}
     break;
 
   case 27:
-#line 70 "test.y"
+#line 74 "test.y"
     { printf("%d\n", (yyvsp[(3) - (4)].integer_val) );;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1455 "test.tab.c"
+#line 1464 "test.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1665,20 +1674,21 @@ yyreturn:
 }
 
 
-#line 72 "test.y"
+#line 76 "test.y"
 
 
-int return_value(char* name)
-{
-	return 22;
-}
-
-void set_value(char* name, int value)
-{
-
-}
 int main(int argc, char **argv)
 {
+// open a file handle to a particular file:
+FILE *myfile = fopen("test.pas", "r");
+// make sure it's valid:
+if (!myfile) {
+	std::cout << "I can't open a file!" << std::endl;
+	return -1;
+	}
+	// set lex to read from it instead of defaulting to STDIN:
+	yyin = myfile;
+	// lex through the input:
 	yyparse();
 	return 0;
 }
@@ -1686,5 +1696,20 @@ int main(int argc, char **argv)
 void yyerror(const char *s)
 {
 	printf("Error: %s\n", s);
+}
+
+int get_value(char *name)
+{
+	std::string std_name = std::string(name);
+  if (symtable.find(std_name)==symtable.end())
+    return 0;
+  else
+	 return symtable[std_name];
+}
+
+void set_value(char *name, int value)
+{
+	std::string std_name = std::string(name);
+	symtable[std_name]=value;
 }
 

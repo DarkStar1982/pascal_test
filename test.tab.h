@@ -98,11 +98,11 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 10 "test.y"
+#line 14 "test.y"
 {
 	int integer_val;
   double real_val;
-	char* string_val;
+	char *string_val;
 }
 /* Line 1529 of yacc.c.  */
 #line 109 "test.tab.h"

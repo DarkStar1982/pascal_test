@@ -1,16 +1,20 @@
 /* simplest version of interpreter */
 %{
-	#include <stdio.h>
 	#include <stdlib.h>
+	#include <string>
+	#include <iostream>
+	#include <unordered_map>
 	extern int yylex();
-	void yyerror(const char *s);
-	int return_value(char* name);
+	extern FILE* yyin;
+	int get_value(char* name);
 	void set_value(char* name, int value);
+	void yyerror(const char *s);
+	std::unordered_map<std::string, int> symtable;
 %}
 %union {
 	int integer_val;
   double real_val;
-	char* string_val;
+	char *string_val;
 }
 
 /* declare tokens */
@@ -34,7 +38,7 @@ variable_declaration:
 	identifier_list COLON type_definition EOL
 	;
 identifier_list:
-	IDENTIFIER
+	IDENTIFIER { set_value(yyval.string_val, 0);}
 	| IDENTIFIER COMMA identifier_list
 	;
 type_definition:
@@ -53,7 +57,7 @@ statement:
 	| exp
 	;
 assignment:
-	IDENTIFIER ASSIGN_OP exp { set_value(yylval.string_val, $3); /*symbol table push */}
+	IDENTIFIER ASSIGN_OP exp { $1=$3; set_value(yyval.string_val, $3);/*symbol table push */}
 exp:
 	factor
 	| exp ADD factor { $$ = $1 + $3; }
@@ -65,28 +69,38 @@ factor:
 	| factor DIV term { $$ = $1 / $3; }
 	;
 term: INTEGER
-	| IDENTIFIER { $$=return_value(yylval.string_val); /*symbol table pop */}
+	| IDENTIFIER { $$=get_value(yyval.string_val); /*symbol table pop */}
 	| OP exp CP { $$ = $2; }
 	| WRITELN OP exp CP  { printf("%d\n", $3 );}
 	;
 %%
 
-int return_value(char* name)
-{
-	return 22;
-}
-
-void set_value(char* name, int value)
-{
-
-}
 int main(int argc, char **argv)
 {
-	yyparse();
-	return 0;
+// open a file handle to a particular file:
+FILE *myfile = fopen("test.pas", "r");
+if (!myfile) { return -1; }
+yyin = myfile;
+yyparse();
+return 0;
 }
 
 void yyerror(const char *s)
 {
 	printf("Error: %s\n", s);
+}
+
+int get_value(char *name)
+{
+	std::string std_name = std::string(name);
+  if (symtable.find(std_name)==symtable.end())
+    return 0;
+  else
+	 return symtable[std_name];
+}
+
+void set_value(char *name, int value)
+{
+	std::string std_name = std::string(name);
+	symtable[std_name]=value;
 }
