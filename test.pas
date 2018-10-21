@@ -8,8 +8,13 @@ BEGIN
   b := 10 * a + 10 * number / 4;
   c := a - b;
   x := 11*(a+b+c);
-  writeln(a);
-  writeln(b);
-  writeln(c);
-  writeln(x);
+  IF x>0 THEN
+  BEGIN
+    writeln(a);
+    writeln(b);
+  END
+  ELSE BEGIN
+    writeln(c);
+    writeln(x);
+  END
 END.
