@@ -14,14 +14,10 @@
 	void yyerror(const char *s);
 	unordered_map<string, int> symtable;
 
-	enum node_types {
-		Number,
-		Symbol, Exp
-	};
 	struct ast_node {
 		int node_type;
 		ast_node **children;
-		union value {
+		union {
 			int number;
 			char* symbol;
 		};
