@@ -13,7 +13,8 @@
 	extern FILE* yyin;
 	extern int linenumber;
 	void yyerror(const char* s);
-	/* symtable */
+
+	/* symbol table */
 	int get_value(char* name);
 	void set_value(char* name, int value);
 
@@ -25,7 +26,10 @@
 	ast_node*	create_ast_node_writeln(ast_node* node);
 	ast_node* create_ast_node_if(ast_node* condition, ast_node* block_then);
 	ast_node* create_ast_node_if_else(ast_node* condition, ast_node* block_then, ast_node* block_else);
-	void append_child_to_ast_node(ast_node* parent, ast_node* child);
+	ast_node* append_child_to_ast_node(ast_node* parent, ast_node* child);
+	ast_node* create_ast_type_int();
+	ast_node* create_ast_type_real();
+	ast_node* create_ast_node_id_decl(char* value);
 	/* interpeter */
 	void evaluate(ast_node*);
 
@@ -47,39 +51,43 @@
 %token REAL TYPE_REAL TYPE_INTEGER VAR GT LS
 %token<integer_val> INTEGER
 %token<string_val> IDENTIFIER
-
+%token IDENTIFIER_DECLARATION
 %token ADD SUB MUL DIV OP CP ASSIGN_OP COMMA COLON LOGIC_OP
 %token EOL EOF_TOKEN
 %token IF THEN ELSE WHILE BEGIN_TOKEN END_TOKEN PROGRAM WRITELN
-%type<ast_value> term factor exp bool_exp assignment if_statement list block statement program
+%type<ast_value> term factor exp bool_exp assignment if_statement list variable_declaration
+%type<ast_value> block type_definition identifier_list statement variable_declaration_list program
 %%
 program:
-	program_heading VAR variable_declaration_list block EOF_TOKEN { evaluate(tree_root); exit(0);}
+	program_heading VAR variable_declaration_list block EOF_TOKEN {
+	 	$$ = append_child_to_ast_node($4,$3);
+		evaluate(tree_root); exit(0);
+		}
 program_heading:
-	PROGRAM IDENTIFIER EOL
+	PROGRAM IDENTIFIER EOL /* not really matters */
 	;
 variable_declaration_list:
-	variable_declaration
-	| variable_declaration variable_declaration_list
+	variable_declaration { $$=$1;}
+	| variable_declaration variable_declaration_list {$$=append_child_to_ast_node($2, $1);}
 	;
 variable_declaration:
-	identifier_list COLON type_definition EOL
+	identifier_list COLON type_definition EOL { $$=$1;}
 	;
 identifier_list:
-	IDENTIFIER
-	| IDENTIFIER COMMA identifier_list
+	IDENTIFIER {$$=create_ast_node_id_decl($1)}
+	| IDENTIFIER COMMA identifier_list {$$=append_child_to_ast_node($3, create_ast_node_id_decl($1));}
 	;
 type_definition:
-	TYPE_INTEGER
-	| TYPE_REAL
+	TYPE_INTEGER {$$ = create_ast_type_int();}
+	| TYPE_REAL {$$ = create_ast_type_real();}
 	;
 block:
 	| BEGIN_TOKEN list END_TOKEN {$$=$2;}
 	;
 list:
 	statement EOL {$$=$1;}
-	| list statement EOL {append_child_to_ast_node($1, $2);}
-	| list if_statement	{append_child_to_ast_node($1, $2);}
+	| list statement EOL {$$=append_child_to_ast_node($$, $2);}
+	| list if_statement {$$=append_child_to_ast_node($$, $2);}
 	;
 if_statement:
 	IF bool_exp THEN block {$$=create_ast_node_if($2, $4)}
@@ -158,9 +166,37 @@ ast_node* create_ast_node_int(int value)
 	ast_node* result = new ast_node;
 	result->node_type = INTEGER;
 	result->integer_value = value;
+	result->child_count = 0;
+	tree_root = result;
 	return result;
 }
 
+ast_node* create_ast_type_int()
+{
+	ast_node* result = new ast_node;
+	result->node_type = TYPE_INTEGER;
+	result->child_count = 0;
+	tree_root = result;
+	return result;
+}
+
+ast_node* create_ast_type_real()
+{
+	ast_node* result = new ast_node;
+	result->node_type = TYPE_REAL;
+	result->child_count = 0;
+	tree_root = result;
+	return result;
+}
+ast_node* create_ast_node_id_decl(char* value)
+{
+	ast_node* result = new ast_node;
+	result->node_type = IDENTIFIER_DECLARATION;
+	result->string_value = value;
+	result->child_count = 0;
+	tree_root = result;
+	return result;
+}
 ast_node* create_ast_node_writeln(ast_node* node)
 {
 	ast_node* result = new ast_node;
@@ -178,6 +214,7 @@ ast_node* create_ast_node_id(char* value)
 	result->node_type = IDENTIFIER;
 	result->string_value = value;
 	result->child_count = 0;
+	tree_root = result;
 	return result;
 }
 
@@ -201,6 +238,7 @@ ast_node* create_ast_node_assign(char* value, ast_node* right)
 	result->child_count = 1;
 	result->children = new ast_node*[1];
 	result->children[0] = right;
+	tree_root = result;
 	return result;
 }
 
@@ -209,9 +247,11 @@ ast_node* create_ast_node_if(ast_node* condition, ast_node* block_then)
 {
 	ast_node* result = new ast_node;
 	result->node_type = IF;
-	result->child_count = 1;
-	result->children = new ast_node*[1];
-	result->children[0] = block_then;
+	result->child_count = 2;
+	result->children = new ast_node*[2];
+	result->children[0] = condition;
+	result->children[1] = block_then;
+	tree_root = result;;
 	return result;
 }
 
@@ -219,25 +259,29 @@ ast_node* create_ast_node_if_else(ast_node* condition, ast_node* block_then, ast
 {
 	ast_node* result = new ast_node;
 	result->node_type = IF;
-	result->child_count = 2;
-	result->children = new ast_node*[1];
-	result->children[0] = block_then;
-	result->children[1] = block_else;
+	result->child_count = 3;
+	result->children = new ast_node*[3];
+	result->children[0] = condition;
+	result->children[1] = block_then;
+	result->children[2] = block_else;
 	tree_root = result;
 	return result;
 }
 
-
-void append_child_to_ast_node(ast_node* parent, ast_node* child)
+ast_node* append_child_to_ast_node(ast_node* parent, ast_node* child)
 {
-	parent->child_count++;
-	ast_node** new_array = new ast_node*[parent->child_count];
-	for (int i=0;i<parent->child_count-1;i++)
+	ast_node* result = new ast_node;
+	result->node_type = parent->node_type;
+	int count = parent->child_count;
+	result->children = new ast_node*[count+1];
+	for (int i=0;i<count;i++)
 	{
-		new_array[i] = parent->children[i];
+		result->children[i] = parent->children[i];
 	}
-	new_array[parent->child_count-1] = child;
-	parent->children = new_array;
+	result->children[count] = child;
+	result->child_count = parent->child_count+1;
+	tree_root=result;
+	return result;
 }
 
 /*************************/
@@ -246,12 +290,11 @@ void append_child_to_ast_node(ast_node* parent, ast_node* child)
 void evaluate(ast_node* node)
 {
 	int *x = &node->node_type;
-	int *count = &node->child_count;
-	for (int i=0;i<(*count);i++)
+	int count = node->child_count;
+	for (int i=0;i<count;i++)
 	{
 		evaluate(node->children[i]);
 	}
 	printf("%d\n",*x);
-	printf("%d\n",*count);
-	//cout<<"A test"<<endl;
+	printf("%d\n",count);
 }
