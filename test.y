@@ -67,7 +67,7 @@
 %%
 program:
 	program_heading VAR variable_declaration_list block EOF_TOKEN {
-	 	$$ = create_ast_node_program ($3, $4);
+	 	tree_root = create_ast_node_program ($3, $4);
 		evaluate(tree_root); exit(0);
 		}
 program_heading:
@@ -177,7 +177,6 @@ ast_node* create_ast_node_int(int value)
 	result->node_type = INTEGER;
 	result->integer_value = value;
 	result->child_count = 0;
-	tree_root = result;
 	return result;
 }
 
@@ -186,7 +185,6 @@ ast_node* create_ast_type_int()
 	ast_node* result = new ast_node;
 	result->node_type = TYPE_INTEGER;
 	result->child_count = 0;
-	tree_root = result;
 	return result;
 }
 
@@ -195,7 +193,6 @@ ast_node* create_ast_type_real()
 	ast_node* result = new ast_node;
 	result->node_type = TYPE_REAL;
 	result->child_count = 0;
-	tree_root = result;
 	return result;
 }
 ast_node* create_ast_node_id_decl(char* value)
@@ -204,9 +201,9 @@ ast_node* create_ast_node_id_decl(char* value)
 	result->node_type = IDENTIFIER_DECLARATION;
 	result->string_value = value;
 	result->child_count = 0;
-	tree_root = result;
 	return result;
 }
+
 ast_node* create_ast_node_writeln(ast_node* node)
 {
 	ast_node* result = new ast_node;
@@ -214,7 +211,6 @@ ast_node* create_ast_node_writeln(ast_node* node)
 	result->child_count = 1;
 	result->children = new ast_node*[1];
 	result->children[0] = node;
-	tree_root = result;
 	return result;
 }
 
@@ -225,7 +221,6 @@ ast_node* create_ast_node_super(ast_node* node, int type)
 	result->child_count = 1;
 	result->children = new ast_node*[1];
 	result->children[0] = node;
-	tree_root = result;
 	return result;
 }
 
@@ -234,7 +229,6 @@ ast_node* create_ast_node_super_blank(int type)
 	ast_node* result = new ast_node;
 	result->node_type = type;
 	result->child_count = 0;
-	tree_root = result;
 	return result;
 }
 ast_node* create_ast_node_id(char* value)
@@ -243,7 +237,6 @@ ast_node* create_ast_node_id(char* value)
 	result->node_type = IDENTIFIER;
 	result->string_value = value;
 	result->child_count = 0;
-	tree_root = result;
 	return result;
 }
 
@@ -255,7 +248,6 @@ ast_node* create_ast_node_op(ast_node* left, int type, ast_node* right)
 	result->children[0]=left;
 	result->children[1]=right;
 	result->child_count = 2;
-	tree_root = result;
 	return result;
 }
 
@@ -267,7 +259,6 @@ ast_node* create_ast_node_assign(char* value, ast_node* right)
 	result->child_count = 1;
 	result->children = new ast_node*[1];
 	result->children[0] = right;
-	tree_root = result;
 	return result;
 }
 
@@ -280,7 +271,6 @@ ast_node* create_ast_node_if(ast_node* condition, ast_node* block_then)
 	result->children = new ast_node*[2];
 	result->children[0] = condition;
 	result->children[1] = block_then;
-	tree_root = result;;
 	return result;
 }
 
@@ -293,7 +283,6 @@ ast_node* create_ast_node_if_else(ast_node* condition, ast_node* block_then, ast
 	result->children[0] = condition;
 	result->children[1] = block_then;
 	result->children[2] = block_else;
-	tree_root = result;
 	return result;
 }
 
@@ -305,7 +294,6 @@ ast_node* create_ast_node_program(ast_node* left, ast_node* right)
 	result->children = new ast_node*[2];
 	result->children[0] = left;
 	result->children[1] = right;
-	tree_root = result;
 	return result;
 }
 
@@ -322,7 +310,6 @@ ast_node* append_child_to_ast_node(ast_node* parent, ast_node* child)
 	}
 	result->children[count] = child;
 	result->child_count = parent->child_count+1;
-	tree_root=result;
 	return result;
 }
 
