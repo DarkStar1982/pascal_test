@@ -1,6 +1,6 @@
 PROGRAM test;
 VAR
-   number        : INTEGER;
+   number,number2   : INTEGER;
    a, b, c, x, i : INTEGER;
 BEGIN
   number := 2;
@@ -19,6 +19,9 @@ BEGIN
   ELSE BEGIN
     writeln(c);
     writeln(x);
+    number2 := 10;
+    WHILE number2>0 DO number2:= number2-1;
+    writeln(number2);
   END
   i:=0;
   x:=10;
