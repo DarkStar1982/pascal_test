@@ -41,4 +41,5 @@ ID [a-z][a-z0-9]*
 {ID}	{ yylval.string_val=(char *) strdup(yytext); return IDENTIFIER;}
 [ \t]			{/* skip spaces */}
 "\n"			{linenumber++;}
+"{"[^}]*"}" {/* comment eater */}
 %%
