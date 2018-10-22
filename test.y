@@ -24,7 +24,7 @@
 	ast_node* create_ast_node_id(char* value);
 	ast_node* create_ast_node_op(ast_node* left, int type, ast_node* right);
 	ast_node* create_ast_node_assign(char* value, ast_node* right);
-	ast_node*	create_ast_node_writeln(ast_node* node);
+	ast_node* create_ast_node_writeln(ast_node* node);
 	ast_node* create_ast_node_if(ast_node* condition, ast_node* block_then);
 	ast_node* create_ast_node_while(ast_node* condition, ast_node* block_while);
 	ast_node* create_ast_node_if_else(ast_node* condition, ast_node* block_then, ast_node* block_else);
