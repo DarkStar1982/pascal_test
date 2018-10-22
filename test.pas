@@ -1,7 +1,7 @@
 PROGRAM test;
 VAR
    number     : INTEGER;
-   a, b, c, x : INTEGER;
+   a, b, c, x: INTEGER;
 BEGIN
   number := 2;
   a := number;

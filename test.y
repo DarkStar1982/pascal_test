@@ -27,15 +27,20 @@
 	ast_node* create_ast_node_if(ast_node* condition, ast_node* block_then);
 	ast_node* create_ast_node_if_else(ast_node* condition, ast_node* block_then, ast_node* block_else);
 	ast_node* append_child_to_ast_node(ast_node* parent, ast_node* child);
+	ast_node* create_ast_node_super(ast_node* node, int type);
 	ast_node* create_ast_type_int();
 	ast_node* create_ast_type_real();
 	ast_node* create_ast_node_id_decl(char* value);
+	ast_node* create_ast_node_program(ast_node* left, ast_node* right);
+	ast_node* create_ast_node_super_blank(int type);
 	/* interpeter */
 	void evaluate(ast_node*);
+	int eval_expression(ast_node* node);
 
 	unordered_map<string, int> symtable;
 
 	ast_node* tree_root;
+	int xxx =  0;
 
 %}
 
@@ -51,16 +56,18 @@
 %token REAL TYPE_REAL TYPE_INTEGER VAR GT LS
 %token<integer_val> INTEGER
 %token<string_val> IDENTIFIER
-%token IDENTIFIER_DECLARATION
 %token ADD SUB MUL DIV OP CP ASSIGN_OP COMMA COLON LOGIC_OP
 %token EOL EOF_TOKEN
 %token IF THEN ELSE WHILE BEGIN_TOKEN END_TOKEN PROGRAM WRITELN
+
+%token IDENTIFIER_DECLARATION LIST VAR_DEC ID_LIST/* pseudotokens to mark AST node types */
+
 %type<ast_value> term factor exp bool_exp assignment if_statement list variable_declaration
 %type<ast_value> block type_definition identifier_list statement variable_declaration_list program
 %%
 program:
 	program_heading VAR variable_declaration_list block EOF_TOKEN {
-	 	$$ = append_child_to_ast_node($4,$3);
+	 	$$ = create_ast_node_program ($3, $4);
 		evaluate(tree_root); exit(0);
 		}
 program_heading:
@@ -74,8 +81,11 @@ variable_declaration:
 	identifier_list COLON type_definition EOL { $$=$1;}
 	;
 identifier_list:
-	IDENTIFIER {$$=create_ast_node_id_decl($1)}
-	| IDENTIFIER COMMA identifier_list {$$=append_child_to_ast_node($3, create_ast_node_id_decl($1));}
+	IDENTIFIER {
+		$$=create_ast_node_super_blank(ID_LIST);
+		$$=append_child_to_ast_node($$ ,create_ast_node_id_decl($1));
+		}
+	| IDENTIFIER COMMA identifier_list { $$=append_child_to_ast_node($3, create_ast_node_id_decl($1));}
 	;
 type_definition:
 	TYPE_INTEGER {$$ = create_ast_type_int();}
@@ -85,7 +95,7 @@ block:
 	| BEGIN_TOKEN list END_TOKEN {$$=$2;}
 	;
 list:
-	statement EOL {$$=$1;}
+	statement EOL {$$=create_ast_node_super($1, LIST);}
 	| list statement EOL {$$=append_child_to_ast_node($$, $2);}
 	| list if_statement {$$=append_child_to_ast_node($$, $2);}
 	;
@@ -101,7 +111,7 @@ statement:
 assignment:
 	IDENTIFIER ASSIGN_OP exp {$$ = create_ast_node_assign($1,$3)}
 bool_exp:
-	exp {$$=$1}
+	exp {$$=$1;}
 	| exp GT exp {$$=create_ast_node_op($1, GT, $3);}
 	| exp LS exp {$$=create_ast_node_op($1, LS, $3);}
 	;
@@ -208,6 +218,25 @@ ast_node* create_ast_node_writeln(ast_node* node)
 	return result;
 }
 
+ast_node* create_ast_node_super(ast_node* node, int type)
+{
+	ast_node* result = new ast_node;
+	result->node_type = type;
+	result->child_count = 1;
+	result->children = new ast_node*[1];
+	result->children[0] = node;
+	tree_root = result;
+	return result;
+}
+
+ast_node* create_ast_node_super_blank(int type)
+{
+	ast_node* result = new ast_node;
+	result->node_type = type;
+	result->child_count = 0;
+	tree_root = result;
+	return result;
+}
 ast_node* create_ast_node_id(char* value)
 {
 	ast_node* result = new ast_node;
@@ -268,10 +297,23 @@ ast_node* create_ast_node_if_else(ast_node* condition, ast_node* block_then, ast
 	return result;
 }
 
+ast_node* create_ast_node_program(ast_node* left, ast_node* right)
+{
+	ast_node* result = new ast_node;
+	result->node_type = PROGRAM;
+	result->child_count = 2;
+	result->children = new ast_node*[2];
+	result->children[0] = left;
+	result->children[1] = right;
+	tree_root = result;
+	return result;
+}
+
 ast_node* append_child_to_ast_node(ast_node* parent, ast_node* child)
 {
 	ast_node* result = new ast_node;
 	result->node_type = parent->node_type;
+	result->string_value = parent->string_value;
 	int count = parent->child_count;
 	result->children = new ast_node*[count+1];
 	for (int i=0;i<count;i++)
@@ -289,12 +331,65 @@ ast_node* append_child_to_ast_node(ast_node* parent, ast_node* child)
 /*************************/
 void evaluate(ast_node* node)
 {
-	int *x = &node->node_type;
+	int type = node->node_type;
 	int count = node->child_count;
-	for (int i=0;i<count;i++)
+	int eval_value=0;
+//	printf("%d\n",type);
+//	printf("%d\n",count);
+
+	switch (type)
 	{
-		evaluate(node->children[i]);
+		case IDENTIFIER_DECLARATION:
+			cout<<"Declared variable: "<<node->string_value<<endl;
+			set_value(node->string_value,0);
+			break;
+		case WRITELN:
+			eval_value = eval_expression(node->children[0]);
+			cout<<"Writing to output:"<<eval_value<<endl;
+			break;
+		case ASSIGN_OP:
+			eval_value = eval_expression(node->children[0]);
+			set_value(node->string_value,eval_value);
+			cout<<"Assigned a value "<<eval_value<<" to variable "<<node->string_value<<endl;
+			break;
+		default:
+			for (int i=0;i<count;i++) /* left to right */
+			{
+				evaluate(node->children[i]);
+			}
 	}
-	printf("%d\n",*x);
-	printf("%d\n",count);
+}
+
+int eval_expression(ast_node* node)
+{
+	int result=0;
+	switch (node->node_type)
+	{
+		case INTEGER:
+			return node->integer_value;
+		case IDENTIFIER:
+			result = get_value(node->string_value);
+			return result;
+		case MUL:
+			result = eval_expression(node->children[0])*eval_expression(node->children[1]);
+			return result;
+		case DIV:
+			result = eval_expression(node->children[0])/eval_expression(node->children[1]);
+			return result;
+		case ADD:
+			result = eval_expression(node->children[0])+eval_expression(node->children[1]);
+			return result;
+		case SUB:
+			result = eval_expression(node->children[0])-eval_expression(node->children[1]);
+			return result;
+		case GT:
+			if (eval_expression(node->children[0])>eval_expression(node->children[1]))
+				return 1;
+			else return 0;
+		case LS:
+			if (eval_expression(node->children[0])<eval_expression(node->children[1]))
+				return 1;
+			else return 0;
+	}
+	return result;
 }
