@@ -26,6 +26,7 @@ ID [a-z][a-z0-9]*
 "then"		{ return THEN;}
 "else"		{ return ELSE;}
 "while"		{ return WHILE;}
+"do"			{ return DO;}
 "integer"	{ return TYPE_INTEGER;}
 "real"		{ return TYPE_REAL;}
 "var"			{ return VAR;}
@@ -33,6 +34,8 @@ ID [a-z][a-z0-9]*
 ":="			{ return ASSIGN_OP;}
 ">"				{ return GT;}
 "<"				{ return LS;}
+"="				{ return EQ;}
+"<>"			{ return NEQ;}
 "writeln" { return WRITELN;}
 [1-9][0-9]*|[0-9]	{ yylval.integer_val=atoi(yytext); return INTEGER;}
 {ID}	{ yylval.string_val=(char *) strdup(yytext); return IDENTIFIER;}

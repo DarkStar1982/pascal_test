@@ -15,6 +15,7 @@
 	void yyerror(const char* s);
 
 	/* symbol table */
+	unordered_map<string, int> symtable;
 	int get_value(char* name);
 	void set_value(char* name, int value);
 
@@ -25,6 +26,7 @@
 	ast_node* create_ast_node_assign(char* value, ast_node* right);
 	ast_node*	create_ast_node_writeln(ast_node* node);
 	ast_node* create_ast_node_if(ast_node* condition, ast_node* block_then);
+	ast_node* create_ast_node_while(ast_node* condition, ast_node* block_while);
 	ast_node* create_ast_node_if_else(ast_node* condition, ast_node* block_then, ast_node* block_else);
 	ast_node* append_child_to_ast_node(ast_node* parent, ast_node* child);
 	ast_node* create_ast_node_super(ast_node* node, int type);
@@ -33,11 +35,10 @@
 	ast_node* create_ast_node_id_decl(char* value);
 	ast_node* create_ast_node_program(ast_node* left, ast_node* right);
 	ast_node* create_ast_node_super_blank(int type);
-	/* interpeter */
+
+	/* interpeter itself */
 	void evaluate(ast_node*);
 	int eval_expression(ast_node* node);
-
-	unordered_map<string, int> symtable;
 
 	ast_node* tree_root;
 	int xxx =  0;
@@ -53,16 +54,16 @@
 }
 
 /* declare tokens */
-%token REAL TYPE_REAL TYPE_INTEGER VAR GT LS
+%token REAL TYPE_REAL TYPE_INTEGER VAR GT LS EQ NEQ
 %token<integer_val> INTEGER
 %token<string_val> IDENTIFIER
 %token ADD SUB MUL DIV OP CP ASSIGN_OP COMMA COLON LOGIC_OP
 %token EOL EOF_TOKEN
-%token IF THEN ELSE WHILE BEGIN_TOKEN END_TOKEN PROGRAM WRITELN
+%token IF THEN ELSE WHILE DO BEGIN_TOKEN END_TOKEN PROGRAM WRITELN
 
 %token IDENTIFIER_DECLARATION LIST VAR_DEC ID_LIST/* pseudotokens to mark AST node types */
 
-%type<ast_value> term factor exp bool_exp assignment if_statement list variable_declaration
+%type<ast_value> term factor exp bool_exp assignment if_statement list variable_declaration while_statement
 %type<ast_value> block type_definition identifier_list statement variable_declaration_list program
 %%
 program:
@@ -92,12 +93,17 @@ type_definition:
 	| TYPE_REAL {$$ = create_ast_type_real();}
 	;
 block:
+	statement EOL {$$=$1;}
 	| BEGIN_TOKEN list END_TOKEN {$$=$2;}
 	;
 list:
 	statement EOL {$$=create_ast_node_super($1, LIST);}
 	| list statement EOL {$$=append_child_to_ast_node($$, $2);}
 	| list if_statement {$$=append_child_to_ast_node($$, $2);}
+	| list while_statement {$$=append_child_to_ast_node($$, $2);}
+	;
+while_statement:
+	WHILE bool_exp DO block {$$=create_ast_node_while($2, $4);}
 	;
 if_statement:
 	IF bool_exp THEN block {$$=create_ast_node_if($2, $4)}
@@ -114,6 +120,8 @@ bool_exp:
 	exp {$$=$1;}
 	| exp GT exp {$$=create_ast_node_op($1, GT, $3);}
 	| exp LS exp {$$=create_ast_node_op($1, LS, $3);}
+	| exp EQ exp {$$=create_ast_node_op($1, EQ, $3);}
+	| exp NEQ exp {$$=create_ast_node_op($1, NEQ, $3);}
 	;
 exp:
 	factor {$$=$1}
@@ -274,6 +282,17 @@ ast_node* create_ast_node_if(ast_node* condition, ast_node* block_then)
 	return result;
 }
 
+ast_node* create_ast_node_while(ast_node* condition, ast_node* block_while)
+{
+	ast_node* result = new ast_node;
+	result->node_type = WHILE;
+	result->child_count = 2;
+	result->children = new ast_node*[2];
+	result->children[0] = condition;
+	result->children[1] = block_while;
+	return result;
+}
+
 ast_node* create_ast_node_if_else(ast_node* condition, ast_node* block_then, ast_node* block_else)
 {
 	ast_node* result = new ast_node;
@@ -321,8 +340,6 @@ void evaluate(ast_node* node)
 	int type = node->node_type;
 	int count = node->child_count;
 	int eval_value=0;
-//	printf("%d\n",type);
-//	printf("%d\n",count);
 
 	switch (type)
 	{
@@ -343,6 +360,12 @@ void evaluate(ast_node* node)
 				evaluate(node->children[1]);
 			else
 				if (node->child_count>2) evaluate(node->children[2]);
+			break;
+		case WHILE:
+			while (eval_expression(node->children[0])==1)
+			{
+				evaluate(node->children[1]);
+			};
 			break;
 		case PROGRAM:
 			for (int i=0;i<count;i++) /* left to right */
@@ -387,6 +410,14 @@ int eval_expression(ast_node* node)
 			else return 0;
 		case LS:
 			if (eval_expression(node->children[0])<eval_expression(node->children[1]))
+				return 1;
+			else return 0;
+		case EQ:
+			if (eval_expression(node->children[0])==eval_expression(node->children[1]))
+				return 1;
+			else return 0;
+		case NEQ:
+			if (eval_expression(node->children[0])!=eval_expression(node->children[1]))
 				return 1;
 			else return 0;
 	}
