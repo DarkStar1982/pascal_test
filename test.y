@@ -340,7 +340,6 @@ void evaluate(ast_node* node)
 	switch (type)
 	{
 		case IDENTIFIER_DECLARATION:
-			cout<<"Declared variable: "<<node->string_value<<endl;
 			set_value(node->string_value,0);
 			break;
 		case WRITELN:
@@ -350,13 +349,26 @@ void evaluate(ast_node* node)
 		case ASSIGN_OP:
 			eval_value = eval_expression(node->children[0]);
 			set_value(node->string_value,eval_value);
-			cout<<"Assigned a value "<<eval_value<<" to variable "<<node->string_value<<endl;
 			break;
-		default:
+		case IF:
+			eval_value = eval_expression(node->children[0]);
+			if (eval_value==1)
+				evaluate(node->children[1]);
+			else
+				if (node->child_count>2) evaluate(node->children[2]);
+			break;
+		case PROGRAM:
 			for (int i=0;i<count;i++) /* left to right */
 			{
 				evaluate(node->children[i]);
 			}
+			break;
+		case LIST:
+			for (int i=0;i<count;i++) /* left to right */
+			{
+				evaluate(node->children[i]);
+			}
+			break;
 	}
 }
 
