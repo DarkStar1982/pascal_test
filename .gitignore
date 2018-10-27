@@ -4,3 +4,4 @@ bin/
 *.yy.c
 *.tab.c
 *.tab.h
+*.pas

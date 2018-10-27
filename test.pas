@@ -11,11 +11,9 @@ BEGIN
   x := 11*(a+b+c);
   writeln(x);
   x :=0;
-  IF x<0 THEN
+  IF x>0 THEN
   BEGIN
-    writeln(number);
-    writeln(a);
-    writeln(b);
+    writeln(x);
   END
   ELSE BEGIN
     writeln(c);
