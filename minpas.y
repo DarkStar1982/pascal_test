@@ -64,7 +64,7 @@
 %token IDENTIFIER_DECLARATION LIST VAR_DEC ID_LIST/* pseudotokens to mark AST node types */
 
 %type<ast_value> term factor exp bool_exp assignment if_statement list variable_declaration while_statement
-%type<ast_value> block type_definition identifier_list statement variable_declaration_list program
+%type<ast_value> block type_definition identifier_list statement variable_declaration_list if_statement_long if_statement_short program
 %%
 program:
 	program_heading VAR variable_declaration_list block EOF_TOKEN {
@@ -93,8 +93,7 @@ type_definition:
 	| TYPE_REAL {$$ = create_ast_type_real();}
 	;
 block:
-	statement EOL {$$=$1;}
-	| BEGIN_TOKEN list END_TOKEN {$$=$2;}
+	BEGIN_TOKEN list END_TOKEN {$$=$2;}
 	;
 list:
 	statement EOL {$$=create_ast_node_super($1, LIST);}
@@ -106,8 +105,18 @@ while_statement:
 	WHILE bool_exp DO block {$$=create_ast_node_while($2, $4);}
 	;
 if_statement:
+	if_statement_short {$$=$1}
+	| if_statement_long {$$=$1}
+
+if_statement_short:
 	IF bool_exp THEN block {$$=create_ast_node_if($2, $4)}
-	| IF bool_exp THEN block ELSE block {$$=create_ast_node_if_else($2, $4, $6)}
+	| IF bool_exp THEN statement EOL {$$=create_ast_node_if($2, $4)}
+
+if_statement_long:
+	IF bool_exp THEN block ELSE block {$$=create_ast_node_if_else($2, $4, $6)}
+	| IF bool_exp THEN statement EOL ELSE block {$$=create_ast_node_if_else($2, $4, $7)}
+	| IF bool_exp THEN block ELSE statement EOL {$$=create_ast_node_if_else($2, $4, $6)}
+	| IF bool_exp THEN statement EOL ELSE statement EOL {$$=create_ast_node_if_else($2, $4, $7)}
 	;
 statement:
 	assignment {$$=$1}

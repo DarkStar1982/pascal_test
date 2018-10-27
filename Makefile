@@ -1,8 +1,8 @@
-test.tab.c test.tab.h: test.y
-	bison -d test.y
+minpas.tab.c minpas.tab.h: minpas.y
+	bison -d minpas.y
 
-lex.yy.c: test.lex test.tab.h
-	flex test.lex
+lex.yy.c: minpas.lex minpas.tab.h
+	flex minpas.lex
 
-test: lex.yy.c test.tab.c test.tab.h
-	g++ test.tab.c lex.yy.c -ll -o bin/test
+minpas: lex.yy.c minpas.tab.c minpas.tab.h
+	g++ minpas.tab.c lex.yy.c -ll -o bin/minpas
