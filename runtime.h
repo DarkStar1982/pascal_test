@@ -1,4 +1,4 @@
-/* AST */
+/* AST data structure*/
 typedef struct ast{
   int node_type;
   ast** children;
@@ -9,6 +9,7 @@ typedef struct ast{
   };
 } ast_node;
 
+/* AST tree methods */
 ast_node* create_ast_node_int(int value);
 ast_node* create_ast_node_id(char* value);
 ast_node* create_ast_node_op(ast_node* left, int type, ast_node* right);
@@ -24,3 +25,12 @@ ast_node* create_ast_type_real();
 ast_node* create_ast_node_id_decl(char* value);
 ast_node* create_ast_node_program(ast_node* left, ast_node* right);
 ast_node* create_ast_node_super_blank(int type);
+
+/* symbol table methods */
+int get_value(char* name);
+void set_value(char* name, int value);
+
+/* interpeter methods */
+void evaluate(ast_node*);
+void execute();
+int eval_expression(ast_node* node);

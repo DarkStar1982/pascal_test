@@ -1,6 +1,6 @@
 %{
 	#include <string.h>
-	#include "ast.h"
+	#include "runtime.h"
 	#include "test.tab.h"  // to get the token types from Bison
 	int linenumber=1;
 %}

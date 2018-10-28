@@ -1,31 +1,16 @@
 /* simplest version of interpreter */
 %{
 	#include <stdlib.h>
-	#include <string>
-	#include <iostream>
-	#include <list>
-	#include <unordered_map>
-	#include "ast.h"
-
-	using namespace std;
+	#include <stdio.h>
+	#include "runtime.h"
 
 	extern int yylex();
 	extern FILE* yyin;
 	extern int linenumber;
 	void yyerror(const char* s);
 
-	/* symbol table */
-	unordered_map<string, int> symtable;
-	int get_value(char* name);
-	void set_value(char* name, int value);
-
-	/* interpeter itself */
-	void evaluate(ast_node*);
-	int eval_expression(ast_node* node);
-
+	/* root of AST tree */
 	ast_node* tree_root;
-	int xxx =  0;
-
 %}
 
 %union {
@@ -131,6 +116,11 @@ term: INTEGER {$$=create_ast_node_int($1)}
 	;
 %%
 
+void yyerror(const char *s)
+{
+	printf("Line %i: %s\n", linenumber, s);
+}
+
 int main(int argc, char **argv)
 {
 	char *filepath;
@@ -142,119 +132,4 @@ int main(int argc, char **argv)
 		yyparse();
 	}
 	return 0;
-}
-
-void yyerror(const char *s)
-{
-	printf("Line %i: %s\n", linenumber, s);
-}
-
-/************************/
-/* symbol table methods */
-/************************/
-int get_value(char *name)
-{
-	string std_name = string(name);
-  if (symtable.find(std_name)==symtable.end())
-    return 0;
-  else
-	 return symtable[std_name];
-}
-
-void set_value(char *name, int value)
-{
-	string std_name = string(name);
-	symtable[std_name]=value;
-}
-
-/*************************/
-/* Interpreter execution */
-/*************************/
-void evaluate(ast_node* node)
-{
-	int type = node->node_type;
-	int count = node->child_count;
-	int eval_value=0;
-
-	switch (type)
-	{
-		case IDENTIFIER_DECLARATION:
-			set_value(node->string_value,0);
-			break;
-		case WRITELN:
-			eval_value = eval_expression(node->children[0]);
-			cout<<"Writing to output:"<<eval_value<<endl;
-			break;
-		case ASSIGN_OP:
-			eval_value = eval_expression(node->children[0]);
-			set_value(node->string_value,eval_value);
-			break;
-		case IF:
-			eval_value = eval_expression(node->children[0]);
-			if (eval_value==1)
-				evaluate(node->children[1]);
-			else
-				if (node->child_count>2) evaluate(node->children[2]);
-			break;
-		case WHILE:
-			while (eval_expression(node->children[0])==1)
-			{
-				evaluate(node->children[1]);
-			};
-			break;
-		case PROGRAM:
-			for (int i=0;i<count;i++) /* left to right */
-			{
-				evaluate(node->children[i]);
-			}
-			break;
-		case LIST:
-			for (int i=0;i<count;i++) /* left to right */
-			{
-				evaluate(node->children[i]);
-			}
-			break;
-	}
-}
-
-int eval_expression(ast_node* node)
-{
-	int result=0;
-	switch (node->node_type)
-	{
-		case INTEGER:
-			return node->integer_value;
-		case IDENTIFIER:
-			result = get_value(node->string_value);
-			return result;
-		case MUL:
-			result = eval_expression(node->children[0])*eval_expression(node->children[1]);
-			return result;
-		case DIV:
-			result = eval_expression(node->children[0])/eval_expression(node->children[1]);
-			return result;
-		case ADD:
-			result = eval_expression(node->children[0])+eval_expression(node->children[1]);
-			return result;
-		case SUB:
-			result = eval_expression(node->children[0])-eval_expression(node->children[1]);
-			return result;
-		case GT:
-			if (eval_expression(node->children[0])>eval_expression(node->children[1]))
-				return 1;
-			else return 0;
-		case LS:
-			if (eval_expression(node->children[0])<eval_expression(node->children[1]))
-				return 1;
-			else return 0;
-		case EQ:
-			if (eval_expression(node->children[0])==eval_expression(node->children[1]))
-				return 1;
-			else return 0;
-		case NEQ:
-			if (eval_expression(node->children[0])!=eval_expression(node->children[1]))
-				return 1;
-			else return 0;
-	}
-	return result;
 }
