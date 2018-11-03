@@ -1,4 +1,4 @@
-A small Pascal interperter, implemented using Flex and Bison tools.
+A small Pascal interperter, implemented with Flex and Bison tools.
 
 ===== Build instructions ====
 make minpas
