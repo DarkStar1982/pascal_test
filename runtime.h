@@ -32,5 +32,4 @@ void set_value(char* name, int value);
 
 /* interpeter methods */
 void evaluate(ast_node*);
-void execute();
 int eval_expression(ast_node* node);

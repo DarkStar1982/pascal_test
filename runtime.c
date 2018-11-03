@@ -7,9 +7,9 @@
 using namespace std;
 
 /********************************/
-/* symbol table and its methods */
+/* Symbol table and its methods */
 /********************************/
-std::unordered_map<std::string, int> symtable;
+unordered_map<string, int> symtable;
 
 int get_value(char *name)
 {
@@ -195,39 +195,39 @@ void evaluate(ast_node* node)
 	switch (type)
 	{
 		case IDENTIFIER_DECLARATION:
-			set_value(node->string_value,0);
+			set_value(node->string_value,0);		//STOR <ADDR>, 0
 			break;
 		case WRITELN:
 			eval_value = eval_expression(node->children[0]);
-			cout<<"Writing to output:"<<eval_value<<endl;
+			cout<<"Writing to output:"<<eval_value<<endl; // CALL <ADDR>
 			break;
 		case ASSIGN_OP:
 			eval_value = eval_expression(node->children[0]);
-			set_value(node->string_value,eval_value);
+			set_value(node->string_value,eval_value); //STOR <ADDR>, VALUE
 			break;
 		case IF:
 			eval_value = eval_expression(node->children[0]);
-			if (eval_value==1)
-				evaluate(node->children[1]);
+			if (eval_value==1) //CMP
+				evaluate(node->children[1]); //CALL
 			else
-				if (node->child_count>2) evaluate(node->children[2]);
+				if (node->child_count>2) evaluate(node->children[2]); //CALL
 			break;
 		case WHILE:
-			while (eval_expression(node->children[0])==1)
-			{
-				evaluate(node->children[1]);
-			};
+			while (eval_expression(node->children[0])==1) //CMP
+			{ //LOOP
+				evaluate(node->children[1]); //CALL
+			}; //RET
 			break;
 		case PROGRAM:
 			for (int i=0;i<count;i++) /* left to right */
 			{
-				evaluate(node->children[i]);
+				evaluate(node->children[i]); //CAll
 			}
 			break;
 		case LIST:
 			for (int i=0;i<count;i++) /* left to right */
 			{
-				evaluate(node->children[i]);
+				evaluate(node->children[i]); //CALL
 			}
 			break;
 	}
@@ -239,36 +239,36 @@ int eval_expression(ast_node* node)
 	switch (node->node_type)
 	{
 		case INTEGER:
-			return node->integer_value;
+			return node->integer_value; // PUSH VALUE
 		case IDENTIFIER:
-			result = get_value(node->string_value);
+			result = get_value(node->string_value); //LOAD <ADDR>
 			return result;
 		case MUL:
-			result = eval_expression(node->children[0])*eval_expression(node->children[1]);
-			return result;
+			result = eval_expression(node->children[0])*eval_expression(node->children[1]); //IMUL
+			return result; //PUSH VALUE
 		case DIV:
-			result = eval_expression(node->children[0])/eval_expression(node->children[1]);
+			result = eval_expression(node->children[0])/eval_expression(node->children[1]); //IDIV
 			return result;
 		case ADD:
-			result = eval_expression(node->children[0])+eval_expression(node->children[1]);
+			result = eval_expression(node->children[0])+eval_expression(node->children[1]); //ADD
 			return result;
 		case SUB:
-			result = eval_expression(node->children[0])-eval_expression(node->children[1]);
+			result = eval_expression(node->children[0])-eval_expression(node->children[1]); //SUB
 			return result;
 		case GT:
-			if (eval_expression(node->children[0])>eval_expression(node->children[1]))
+			if (eval_expression(node->children[0])>eval_expression(node->children[1]))  //CMP GT
 				return 1;
 			else return 0;
 		case LS:
-			if (eval_expression(node->children[0])<eval_expression(node->children[1]))
+			if (eval_expression(node->children[0])<eval_expression(node->children[1])) //CMP LS
 				return 1;
 			else return 0;
 		case EQ:
-			if (eval_expression(node->children[0])==eval_expression(node->children[1]))
+			if (eval_expression(node->children[0])==eval_expression(node->children[1])) //CMP EQ
 				return 1;
 			else return 0;
 		case NEQ:
-			if (eval_expression(node->children[0])!=eval_expression(node->children[1]))
+			if (eval_expression(node->children[0])!=eval_expression(node->children[1])) //CMP NE
 				return 1;
 			else return 0;
 	}

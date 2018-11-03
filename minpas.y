@@ -21,7 +21,7 @@
 	ast_node* ast_value;
 }
 
-/* declare tokens */
+/* input tokens */
 %token REAL TYPE_REAL TYPE_INTEGER VAR GT LS EQ NEQ
 %token<integer_val> INTEGER
 %token<string_val> IDENTIFIER
@@ -29,7 +29,8 @@
 %token EOL EOF_TOKEN
 %token IF THEN ELSE WHILE DO BEGIN_TOKEN END_TOKEN PROGRAM WRITELN
 
-%token IDENTIFIER_DECLARATION LIST VAR_DEC ID_LIST/* pseudotokens to mark AST node types */
+/* pseudotokens to mark AST node types */
+%token IDENTIFIER_DECLARATION LIST VAR_DEC ID_LIST
 
 %type<ast_value> term factor exp bool_exp assignment if_statement list variable_declaration while_statement
 %type<ast_value> block type_definition identifier_list statement variable_declaration_list if_statement_long if_statement_short program
