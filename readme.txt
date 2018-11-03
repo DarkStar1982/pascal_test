@@ -4,4 +4,4 @@ A small Pascal interperter, implemented using Flex and Bison tools.
 make minpas
 
 ===== Use example ====
-bin/minpas <filename>, where filenames is your Pascal source  file
+bin/minpas <filename>, where filename is your Pascal source  file
